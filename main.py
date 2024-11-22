@@ -1,11 +1,34 @@
 import tkinter as tk
 from tkinter import messagebox
 import requests
+import mysql.connector
+
+def fetch_phone_numbers():
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="db_sms"
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT phone_number FROM contacts")
+        rows = cursor.fetchall()
+        phone_numbers = [row[0] for row in rows]
+        conn.close()
+        return ','.join(phone_numbers)
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return ""
 
 def send_sms(message):
     apiSecret = "d876bad8084ee5626e015904752ea9b3df328588"
     deviceId = "00000000-0000-0000-29ac-666853fbd26e"
-    phones = "+639471977665,+639519826577,+639454989550"  # Comma-separated list of phone numbers
+    phones = fetch_phone_numbers()  # Get phone numbers from database
+
+    if not phones:
+        messagebox.showerror("Error", "Failed to fetch phone numbers.")
+        return
 
     message_data = {
         "secret": apiSecret,
